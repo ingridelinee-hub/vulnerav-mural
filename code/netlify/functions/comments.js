@@ -1,10 +1,10 @@
 const { getClient } = require('./_supabase');
 
 exports.handler = async (event) => {
-  const postId = event.queryStringParameters.postId;
   const supabase = getClient();
 
   if (event.httpMethod === 'GET') {
+    const postId = (event.queryStringParameters || {}).postId;
     const { data, error } = await supabase
       .from('comments')
       .select('id, text, created_at')
@@ -16,6 +16,7 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === 'POST') {
     const body = JSON.parse(event.body || '{}');
+    const postId = body.postId;
     const text = (body.text || '').trim();
     if (!text) return { statusCode: 400, body: JSON.stringify({ error: 'texto vazio' }) };
     if (text.length > 500) return { statusCode: 400, body: JSON.stringify({ error: 'texto muito longo' }) };
