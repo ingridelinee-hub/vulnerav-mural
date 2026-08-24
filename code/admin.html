@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>admin — vulnerabilidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg: #f3f2f2;
+    --color-text: #201f1d;
+    --color-accent-500: #b68235;
+    --color-accent-700: #8a6427;
+    --color-divider: #ddd;
+    --font-heading: 'Cormorant Garamond', serif;
+    --font-ui: 'IBM Plex Sans', sans-serif;
+    --radius-sm: 4px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-ui); }
+  h1 { font-family: var(--font-heading); font-size: 28px; font-weight: 600; margin: 0 0 24px; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 40px 20px; }
+  .card { border: 1px solid var(--color-divider); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px; background: white; }
+  .post-text { white-space: pre-wrap; margin: 0 0 12px; font-size: 15px; line-height: 1.6; }
+  .meta { font-size: 12px; color: #8f8e8c; margin: 0 0 12px; }
+  .btn { font-family: var(--font-ui); font-size: 14px; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid #b3261e; background: transparent; color: #b3261e; }
+  .btn:hover { background: rgba(179,38,30,0.08); }
+  input { width: 100%; padding: 10px 12px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: 15px; margin-bottom: 12px; box-sizing: border-box; }
+  .login-btn { font-family: var(--font-ui); font-size: 15px; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--color-accent-500); background: transparent; color: var(--color-accent-700); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>admin — mural</h1>
+  <div id="login">
+    <input type="password" id="pw" placeholder="senha de admin">
+    <button class="login-btn" onclick="login()">Entrar</button>
+  </div>
+  <div id="panel" style="display:none;">
+    <div id="list"></div>
+  </div>
+</div>
+<script>
+function login() {
+  const pw = document.getElementById('pw').value;
+  if (!pw) return;
+  sessionStorage.setItem('admin_pw', pw);
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('panel').style.display = 'block';
+  loadPosts();
+}
+
+async function loadPosts() {
+  const list = document.getElementById('list');
+  list.innerHTML = 'carregando...';
+  const res = await fetch('/api/posts');
+  const posts = await res.json();
+  list.innerHTML = '';
+  posts.forEach(post => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <p class="meta">${new Date(post.created_at).toLocaleString('pt-BR')} · ♥ ${post.likes_count} · 🤚 ${post.feels_count}</p>
+      <p class="post-text"></p>
+      <button class="btn">Excluir</button>
+    `;
+    el.querySelector('.post-text').textContent = post.text;
+    el.querySelector('.btn').onclick = () => deletePost(post.id, el);
+    list.appendChild(el);
+  });
+  if (posts.length === 0) list.innerHTML = '<p>Nenhum post.</p>';
+}
+
+async function deletePost(id, el) {
+  if (!confirm('Excluir este post permanentemente?')) return;
+  const pw = sessionStorage.getItem('admin_pw');
+  const res = await fetch('/api/admin-delete', { method: 'POST', body: JSON.stringify({ password: pw, postId: id }) });
+  const text = await res.text();
+  if (!res.ok) { alert('ERRO: ' + text); return; }
+  el.remove();
+}
+
+if (sessionStorage.getItem('admin_pw')) {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('panel').style.display = 'block';
+  loadPosts();
+}
+</script>
+</body>
+</html>
