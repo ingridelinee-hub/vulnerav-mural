@@ -3,18 +3,18 @@
   publish = "."
 
 [[redirects]]
-  from = "/api/posts/*/comments"
-  to = "/.netlify/functions/comments?postId=:splat"
+  from = "/api/comments"
+  to = "/.netlify/functions/comments"
   status = 200
 
 [[redirects]]
-  from = "/api/posts/*/like"
-  to = "/.netlify/functions/like?postId=:splat"
+  from = "/api/like"
+  to = "/.netlify/functions/like"
   status = 200
 
 [[redirects]]
-  from = "/api/posts/*/feel"
-  to = "/.netlify/functions/feel?postId=:splat"
+  from = "/api/feel"
+  to = "/.netlify/functions/feel"
   status = 200
 
 [[redirects]]
