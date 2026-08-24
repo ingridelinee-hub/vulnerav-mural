@@ -3,6 +3,11 @@
   publish = "."
 
 [[redirects]]
+  from = "/api/admin-delete"
+  to = "/.netlify/functions/admin-delete"
+  status = 200
+
+[[redirects]]
   from = "/api/comments"
   to = "/.netlify/functions/comments"
   status = 200
