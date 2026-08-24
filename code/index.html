@@ -161,10 +161,13 @@ async function loadPosts() {
   feed.innerHTML = '<p style="color:var(--color-neutral-400);text-align:center;">carregando...</p>';
   try {
     const res = await fetch(API);
-    const posts = await res.json();
+    const rawText = await res.text();
+    if (!res.ok) { alert('ERRO carregar posts (' + res.status + '): ' + rawText); feed.innerHTML=''; return; }
+    const posts = JSON.parse(rawText);
     feed.innerHTML = '';
     posts.forEach(renderPost);
   } catch (e) {
+    alert('ERRO carregar posts (exception): ' + e.message);
     feed.innerHTML = '<p style="color:var(--color-neutral-400);text-align:center;">não foi possível carregar o mural agora.</p>';
   }
 }
@@ -191,16 +194,24 @@ function renderPost(post) {
   el.querySelector('.like-btn').onclick = async (e) => {
     e.currentTarget.classList.add('active');
     e.currentTarget.disabled = true;
-    const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' });
-    const data = await res.json();
-    el.querySelector('.like-count').textContent = data.likes_count;
+    try {
+      const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' });
+      const text = await res.text();
+      if (!res.ok) { alert('ERRO like (' + res.status + '): ' + text); return; }
+      const data = JSON.parse(text);
+      el.querySelector('.like-count').textContent = data.likes_count;
+    } catch (err) { alert('ERRO like (exception): ' + err.message); }
   };
   el.querySelector('.feel-btn').onclick = async (e) => {
     e.currentTarget.classList.add('active');
     e.currentTarget.disabled = true;
-    const res = await fetch(`/api/posts/${post.id}/feel`, { method: 'POST' });
-    const data = await res.json();
-    el.querySelector('.feel-count').textContent = data.feels_count;
+    try {
+      const res = await fetch(`/api/posts/${post.id}/feel`, { method: 'POST' });
+      const text = await res.text();
+      if (!res.ok) { alert('ERRO feel (' + res.status + '): ' + text); return; }
+      const data = JSON.parse(text);
+      el.querySelector('.feel-count').textContent = data.feels_count;
+    } catch (err) { alert('ERRO feel (exception): ' + err.message); }
   };
   el.querySelector('.comment-toggle').onclick = async () => {
     const box = el.querySelector('.comments');
@@ -208,7 +219,9 @@ function renderPost(post) {
     if (box.classList.contains('open') && !box.dataset.loaded) {
       box.dataset.loaded = '1';
       const res = await fetch(`/api/posts/${post.id}/comments`);
-      const comments = await res.json();
+      const rawText = await res.text();
+      if (!res.ok) { alert('ERRO comments GET (' + res.status + '): ' + rawText); return; }
+      const comments = JSON.parse(rawText);
       box.innerHTML = '';
       comments.forEach(c => {
         const p = document.createElement('p');
@@ -224,7 +237,9 @@ function renderPost(post) {
         const text = input.value.trim();
         if (!text) return;
         const res = await fetch(`/api/posts/${post.id}/comments`, { method: 'POST', body: JSON.stringify({ text }) });
-        const c = await res.json();
+        const rawText = await res.text();
+        if (!res.ok) { alert('ERRO comment POST (' + res.status + '): ' + rawText); return; }
+        const c = JSON.parse(rawText);
         const p = document.createElement('p');
         p.className = 'comment';
         p.textContent = c.text;
@@ -247,13 +262,15 @@ async function publish() {
   btn.disabled = true;
   try {
     const res = await fetch(API, { method: 'POST', body: JSON.stringify({ text }) });
-    const post = await res.json();
+    const rawText = await res.text();
+    if (!res.ok) { alert('ERRO publicar (' + res.status + '): ' + rawText); btn.disabled = false; return; }
+    const post = JSON.parse(rawText);
     textarea.value = '';
     const feed = document.getElementById('feed');
     renderPost({ ...post, comments_count: 0 });
     feed.insertBefore(feed.lastElementChild, feed.firstElementChild);
   } catch (e) {
-    alert('não foi possível publicar agora, tente novamente.');
+    alert('ERRO publicar (exception): ' + e.message);
   }
   btn.disabled = textarea.value.trim().length === 0;
 }
