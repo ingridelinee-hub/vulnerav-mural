@@ -60,12 +60,12 @@
   .compose { padding: var(--space-4); margin-bottom: var(--space-8); }
   .compose-kicker { font-family: var(--font-ui); font-size: 13px; color: var(--color-neutral-700); margin: 0 0 var(--space-3); }
   textarea { width: 100%; resize: vertical; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); font-size: 16px; line-height: 1.6; padding: var(--space-3); }
-  .post { padding: var(--space-5) var(--space-4); margin-bottom: var(--space-8); position: relative; }
+  .post { padding: var(--space-5) var(--space-4); margin-bottom: var(--space-8); position: relative; background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0 1px, transparent 1px 26px); }
   .post-pin { position: absolute; left: 50%; top: -11px; transform: translateX(-50%); width: 11px; height: 26px; background: linear-gradient(var(--color-accent-300), var(--color-accent-500)); border-radius: 2px; box-shadow: var(--shadow-sm); }
   .post-pin::before { content: ''; position: absolute; left: 0; right: 0; top: 9px; height: 2px; background: var(--color-accent-900); }
   .post-pin::after { content: ''; position: absolute; left: 50%; top: 11px; bottom: 0; width: 1px; background: var(--color-accent-900); transform: translateX(-50%); }
   .post-time { font-family: var(--font-ui); font-size: 12px; color: var(--color-neutral-500); margin: 0 0 var(--space-4); }
-  .post-text { font-family: var(--font-body); font-size: 18px; line-height: 1.85; white-space: pre-wrap; margin: 0 0 var(--space-4); }
+  .post-text { font-family: var(--font-body); font-style: italic; font-size: 18px; line-height: 1.85; white-space: pre-wrap; margin: 0 0 var(--space-4); }
   .post-actions { display: flex; gap: var(--space-5); align-items: center; border-top: 1px solid var(--color-divider); padding-top: var(--space-3); }
   .post-actions button.active { color: var(--color-accent-700); }
   .comments { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-divider); display: none; flex-direction: column; gap: var(--space-3); }
@@ -104,9 +104,9 @@
     <div class="hero-content">
       <p class="kicker">anônimo, sempre</p>
       <h1>Um mural para o que você não tem coragem de dizer</h1>
-      <p class="lead">Escreva o que pesa. Não pedimos seu nome. Depois de publicado, o texto fica visível pra qualquer pessoa que entrar no mural, então evite nomes, telefones, endereços ou qualquer coisa que identifique você ou outra pessoa.</p>
+      <p class="lead">Escreva o que pesa. O que você escrever aqui é só seu, até o momento em que se torna de todos.</p>
       <button class="btn" onclick="goMural()">Entrar no mural</button>
-      <p class="fineprint">Nenhum post é assinado. Nenhum post é revisado antes de aparecer. O que você escrever aqui é só seu, até o momento em que se torna de todos.</p>
+      <p class="fineprint">Nenhum post é assinado. Ninguém saberá quem é você, nem nós. Sua confissão fica no mural para que outras pessoas possam ler, e talvez se reconhecer nela.</p>
     </div>
   </div>
 </div>
@@ -121,7 +121,7 @@
     </div>
     <div class="mural-inner">
       <div class="card compose">
-        <p class="compose-kicker">o que você não tem coragem de dizer</p>
+        <p class="compose-kicker">o que você não tem coragem de dizer?</p>
         <textarea id="draft" rows="4" placeholder="Escreva aqui. Ninguém vai saber que foi você." maxlength="500"></textarea>
         <p class="care-note">Evite nomes, telefones, endereços ou qualquer coisa que identifique você ou outra pessoa. Depois de publicado, fica visível pra qualquer um.</p>
         <div style="display:flex;justify-content:flex-end;margin-top:var(--space-3);">
@@ -182,7 +182,9 @@ async function loadPosts() {
 
 function renderPost(post) {
   const feed = document.getElementById('feed');
-  const rotate = ((post.id.charCodeAt(0) % 5) - 2) * 0.6;
+  let hash = 0;
+  for (let i = 0; i < 8; i++) hash += post.id.charCodeAt(i) || 0;
+  const rotate = ((hash % 50) / 10) - 2.5;
   const el = document.createElement('div');
   el.className = 'card post';
   el.style.transform = `rotate(${rotate}deg)`;
