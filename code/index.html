@@ -195,7 +195,7 @@ function renderPost(post) {
     e.currentTarget.classList.add('active');
     e.currentTarget.disabled = true;
     try {
-      const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' });
+      const res = await fetch('/api/like', { method: 'POST', body: JSON.stringify({ postId: post.id }) });
       const text = await res.text();
       if (!res.ok) { alert('ERRO like (' + res.status + '): ' + text); return; }
       const data = JSON.parse(text);
@@ -206,7 +206,7 @@ function renderPost(post) {
     e.currentTarget.classList.add('active');
     e.currentTarget.disabled = true;
     try {
-      const res = await fetch(`/api/posts/${post.id}/feel`, { method: 'POST' });
+      const res = await fetch('/api/feel', { method: 'POST', body: JSON.stringify({ postId: post.id }) });
       const text = await res.text();
       if (!res.ok) { alert('ERRO feel (' + res.status + '): ' + text); return; }
       const data = JSON.parse(text);
@@ -218,7 +218,7 @@ function renderPost(post) {
     box.classList.toggle('open');
     if (box.classList.contains('open') && !box.dataset.loaded) {
       box.dataset.loaded = '1';
-      const res = await fetch(`/api/posts/${post.id}/comments`);
+      const res = await fetch('/api/comments?postId=' + post.id);
       const rawText = await res.text();
       if (!res.ok) { alert('ERRO comments GET (' + res.status + '): ' + rawText); return; }
       const comments = JSON.parse(rawText);
@@ -236,7 +236,7 @@ function renderPost(post) {
       row.querySelector('button').onclick = async () => {
         const text = input.value.trim();
         if (!text) return;
-        const res = await fetch(`/api/posts/${post.id}/comments`, { method: 'POST', body: JSON.stringify({ text }) });
+        const res = await fetch('/api/comments', { method: 'POST', body: JSON.stringify({ postId: post.id, text }) });
         const rawText = await res.text();
         if (!res.ok) { alert('ERRO comment POST (' + res.status + '): ' + rawText); return; }
         const c = JSON.parse(rawText);
