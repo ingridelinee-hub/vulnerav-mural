@@ -1,0 +1,23 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[[redirects]]
+  from = "/api/posts/:id/comments"
+  to = "/.netlify/functions/comments?postId=:id"
+  status = 200
+
+[[redirects]]
+  from = "/api/posts/:id/like"
+  to = "/.netlify/functions/like?postId=:id"
+  status = 200
+
+[[redirects]]
+  from = "/api/posts/:id/feel"
+  to = "/.netlify/functions/feel?postId=:id"
+  status = 200
+
+[[redirects]]
+  from = "/api/posts"
+  to = "/.netlify/functions/posts"
+  status = 200
