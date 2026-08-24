@@ -2,7 +2,8 @@ const { getClient } = require('./_supabase');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
-  const postId = event.queryStringParameters.postId;
+  const body = JSON.parse(event.body || '{}');
+  const postId = body.postId;
   const supabase = getClient();
 
   const { data: post, error: fetchErr } = await supabase.from('posts').select('feels_count').eq('id', postId).single();
