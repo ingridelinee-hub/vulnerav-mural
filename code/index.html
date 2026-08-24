@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vulnerabilidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Newsreader:ital@0;1&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --color-bg: #f3f2f2;
@@ -72,3 +80,210 @@
     .post-actions { gap: var(--space-3); flex-wrap: wrap; }
   }
 </style>
+</head>
+<body>
+
+<nav>
+  <span class="brand" onclick="goHome()">vulnerabilidades</span>
+  <div class="navlinks">
+    <span id="nav-home" class="active" onclick="goHome()">início</span>
+    <span id="nav-mural" onclick="goMural()">mural</span>
+  </div>
+</nav>
+
+<div id="view-home" class="view active">
+  <div class="hero">
+    <div class="paper" style="left:6%;top:12%;width:130px;height:100px;opacity:0.1;transform:rotate(-12deg);"></div>
+    <div class="paper" style="left:18%;bottom:10%;width:110px;height:150px;opacity:0.08;transform:rotate(8deg);"></div>
+    <div class="paper" style="right:10%;top:8%;width:150px;height:110px;opacity:0.1;transform:rotate(6deg);"></div>
+    <div class="paper" style="right:16%;bottom:14%;width:120px;height:90px;opacity:0.09;transform:rotate(-16deg);"></div>
+    <div class="paper" style="left:38%;top:4%;width:90px;height:120px;opacity:0.07;transform:rotate(-4deg);"></div>
+    <div class="paper" style="left:44%;bottom:6%;width:140px;height:100px;opacity:0.08;transform:rotate(14deg);"></div>
+    <div class="paper" style="left:2%;top:55%;width:100px;height:80px;opacity:0.07;transform:rotate(20deg);"></div>
+    <div class="paper" style="right:4%;top:48%;width:110px;height:130px;opacity:0.08;transform:rotate(-9deg);"></div>
+    <div class="hero-content">
+      <p class="kicker">anônimo, sempre</p>
+      <h1>Um mural para o que você não tem coragem de dizer</h1>
+      <p class="lead">Escreva o que pesa. O que você escrever aqui é só seu, até o momento em que se torna de todos.</p>
+      <button class="btn" onclick="goMural()">Entrar no mural</button>
+      <p class="fineprint">Nenhum post é assinado. Ninguém saberá quem é você, nem nós. Sua confissão fica no mural para que outras pessoas possam ler, e talvez se reconhecer nela.</p>
+    </div>
+  </div>
+</div>
+
+<div id="view-mural" class="view">
+  <div class="mural">
+    <div class="clothesline">
+      <div class="rope"></div>
+      <div class="pin" style="left:20%;"></div>
+      <div class="pin" style="left:50%;"></div>
+      <div class="pin" style="left:78%;"></div>
+    </div>
+    <div class="mural-inner">
+      <div class="card compose">
+        <p class="compose-kicker">o que você não tem coragem de dizer?</p>
+        <textarea id="draft" rows="4" placeholder="Escreva aqui. Ninguém vai saber que foi você." maxlength="500"></textarea>
+        <p class="care-note">Evite nomes, telefones, endereços ou qualquer coisa que identifique você ou outra pessoa. Depois de publicado, fica visível pra qualquer um.</p>
+        <div style="display:flex;justify-content:flex-end;margin-top:var(--space-3);">
+          <button class="btn" id="publish-btn" disabled onclick="publish()">Publicar anonimamente</button>
+        </div>
+      </div>
+      <div id="feed"></div>
+    </div>
+  </div>
+</div>
+
+<footer>vulnerabilidades · @vulnerav.eu</footer>
+
+<script>
+const API = '/api/posts';
+
+function goHome() {
+  document.getElementById('view-home').classList.add('active');
+  document.getElementById('view-mural').classList.remove('active');
+  document.getElementById('nav-home').classList.add('active');
+  document.getElementById('nav-mural').classList.remove('active');
+}
+function goMural() {
+  document.getElementById('view-mural').classList.add('active');
+  document.getElementById('view-home').classList.remove('active');
+  document.getElementById('nav-mural').classList.add('active');
+  document.getElementById('nav-home').classList.remove('active');
+  loadPosts();
+}
+
+document.getElementById('draft').addEventListener('input', (e) => {
+  document.getElementById('publish-btn').disabled = e.target.value.trim().length === 0;
+});
+
+function relativeTime(iso) {
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60) return 'agora mesmo';
+  if (diff < 3600) return `há ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)} horas`;
+  return `há ${Math.floor(diff / 86400)} dias`;
+}
+
+async function loadPosts() {
+  const feed = document.getElementById('feed');
+  feed.innerHTML = '<p style="color:var(--color-neutral-400);text-align:center;">carregando...</p>';
+  try {
+    const res = await fetch(API);
+    const rawText = await res.text();
+    if (!res.ok) { alert('ERRO carregar posts (' + res.status + '): ' + rawText); feed.innerHTML=''; return; }
+    const posts = JSON.parse(rawText);
+    feed.innerHTML = '';
+    posts.forEach(renderPost);
+  } catch (e) {
+    alert('ERRO carregar posts (exception): ' + e.message);
+    feed.innerHTML = '<p style="color:var(--color-neutral-400);text-align:center;">não foi possível carregar o mural agora.</p>';
+  }
+}
+
+function renderPost(post) {
+  const feed = document.getElementById('feed');
+  let hash = 0;
+  for (let i = 0; i < 8; i++) hash += post.id.charCodeAt(i) || 0;
+  const rotate = ((hash % 50) / 10) - 2.5;
+  const el = document.createElement('div');
+  el.className = 'card post';
+  el.style.transform = `rotate(${rotate}deg)`;
+  el.innerHTML = `
+    <div class="post-pin"></div>
+    <p class="post-time">${relativeTime(post.created_at)}</p>
+    <p class="post-text"></p>
+    <div class="post-actions">
+      <button class="btn-ghost like-btn"><span>♥</span><span class="like-count">${post.likes_count}</span></button>
+      <button class="btn-ghost comment-toggle"><span>💬</span><span class="comment-count">${post.comments_count}</span></button>
+      <button class="btn-ghost feel-btn"><span>✋</span><span>eu também sinto isso · <span class="feel-count">${post.feels_count}</span></span></button>
+    </div>
+    <div class="comments"></div>
+  `;
+  el.querySelector('.post-text').textContent = post.text;
+
+  el.querySelector('.like-btn').onclick = async (e) => {
+    e.currentTarget.classList.add('active');
+    e.currentTarget.disabled = true;
+    try {
+      const res = await fetch('/api/like', { method: 'POST', body: JSON.stringify({ postId: post.id }) });
+      const text = await res.text();
+      if (!res.ok) { alert('ERRO like (' + res.status + '): ' + text); return; }
+      const data = JSON.parse(text);
+      el.querySelector('.like-count').textContent = data.likes_count;
+    } catch (err) { alert('ERRO like (exception): ' + err.message); }
+  };
+  el.querySelector('.feel-btn').onclick = async (e) => {
+    e.currentTarget.classList.add('active');
+    e.currentTarget.disabled = true;
+    try {
+      const res = await fetch('/api/feel', { method: 'POST', body: JSON.stringify({ postId: post.id }) });
+      const text = await res.text();
+      if (!res.ok) { alert('ERRO feel (' + res.status + '): ' + text); return; }
+      const data = JSON.parse(text);
+      el.querySelector('.feel-count').textContent = data.feels_count;
+    } catch (err) { alert('ERRO feel (exception): ' + err.message); }
+  };
+  el.querySelector('.comment-toggle').onclick = async () => {
+    const box = el.querySelector('.comments');
+    box.classList.toggle('open');
+    if (box.classList.contains('open') && !box.dataset.loaded) {
+      box.dataset.loaded = '1';
+      const res = await fetch('/api/comments?postId=' + post.id);
+      const rawText = await res.text();
+      if (!res.ok) { alert('ERRO comments GET (' + res.status + '): ' + rawText); return; }
+      const comments = JSON.parse(rawText);
+      box.innerHTML = '';
+      comments.forEach(c => {
+        const p = document.createElement('p');
+        p.className = 'comment';
+        p.textContent = c.text;
+        box.appendChild(p);
+      });
+      const row = document.createElement('div');
+      row.className = 'comment-row';
+      row.innerHTML = `<input type="text" placeholder="responder, também anonimamente" maxlength="500"><button class="btn">Enviar</button>`;
+      const input = row.querySelector('input');
+      row.querySelector('button').onclick = async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        const res = await fetch('/api/comments', { method: 'POST', body: JSON.stringify({ postId: post.id, text }) });
+        const rawText = await res.text();
+        if (!res.ok) { alert('ERRO comment POST (' + res.status + '): ' + rawText); return; }
+        const c = JSON.parse(rawText);
+        const p = document.createElement('p');
+        p.className = 'comment';
+        p.textContent = c.text;
+        box.insertBefore(p, row);
+        input.value = '';
+        el.querySelector('.comment-count').textContent = parseInt(el.querySelector('.comment-count').textContent) + 1;
+      };
+      box.appendChild(row);
+    }
+  };
+
+  feed.appendChild(el);
+}
+
+async function publish() {
+  const textarea = document.getElementById('draft');
+  const text = textarea.value.trim();
+  if (!text) return;
+  const btn = document.getElementById('publish-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ text }) });
+    const rawText = await res.text();
+    if (!res.ok) { alert('ERRO publicar (' + res.status + '): ' + rawText); btn.disabled = false; return; }
+    const post = JSON.parse(rawText);
+    textarea.value = '';
+    const feed = document.getElementById('feed');
+    renderPost({ ...post, comments_count: 0 });
+    feed.insertBefore(feed.lastElementChild, feed.firstElementChild);
+  } catch (e) {
+    alert('ERRO publicar (exception): ' + e.message);
+  }
+  btn.disabled = textarea.value.trim().length === 0;
+}
+</script>
+</body>
+</html>
